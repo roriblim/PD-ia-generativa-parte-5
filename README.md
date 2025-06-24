@@ -4,7 +4,7 @@
 
 ## preparando o ambiente
 
-1 - em um com Python 3.11, instale os pacotes requeridos em requirements.txt:
+1 - em um ambiente com Python 3.11, instale os pacotes requeridos em requirements.txt:
 ```
 conda create --name PD_env python=3.11 --no-default-packages -y
 conda activate PD_env
