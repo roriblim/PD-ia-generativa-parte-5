@@ -1,14 +1,15 @@
 import re
 from urllib.parse import urlparse, parse_qs
+import tiktoken
 
+MAX_TOKENS = 20000
 
-# Passo 1: Extrair URL do texto (função pura)
 def extrair_url_youtube(texto):
     padrao = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)'
     urls = re.findall(padrao, texto)
     return urls[0] if urls else None
 
-# Passo 2: Extrair ID do vídeo (função pura)
+
 def extrair_video_id(url):
     # 1. Tenta extrair com padrão youtu.be/ID
     match = re.match(r'(https?://)?(www\.)?youtu\.be/([^?&]+)', url)
@@ -28,3 +29,13 @@ def extrair_video_id(url):
             return parsed_url.path.split("/")[2]
 
     return None
+
+
+def cortar_transcricao(texto, modelo="gpt-4o", max_tokens=MAX_TOKENS):
+    encoding = tiktoken.encoding_for_model(modelo)
+    tokens = encoding.encode(texto)
+    if len(tokens) > max_tokens:
+        tokens_cortados = tokens[:max_tokens]
+        texto_cortado = encoding.decode(tokens_cortados)
+        return texto_cortado, True
+    return texto, False

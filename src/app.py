@@ -2,7 +2,7 @@ import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
 from dotenv import load_dotenv
 from agent import chain_analise_video
-from tools import extrair_url_youtube, extrair_video_id
+from tools import cortar_transcricao, extrair_url_youtube, extrair_video_id
 
 
 st.title("Mimiryx - Analisador de Vídeos do YouTube !")
@@ -21,7 +21,9 @@ if st.button("Analisar"):
         if not video_id:
             st.error("Não consegui extrair o ID do vídeo.")
         else:
-            st.info(f"ID do vídeo encontrado. Carregando a resposta...")
+            thumbnail_url = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+            st.image(thumbnail_url, caption=f"Thumbnail do vídeo de id {video_id}", width=300)
+
             try:
                 transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['pt', 'pt-BR', 'en'])
                 transcript_text = " ".join([t['text'] for t in transcript_list])
@@ -30,6 +32,10 @@ if st.button("Analisar"):
                 transcript_text = None
 
             if transcript_text:
-                resumo = chain_analise_video.run(transcript=transcript_text, pergunta=pergunta_text)
+                transcript_text, cortado = cortar_transcricao(transcript_text)
+                if cortado:
+                    st.warning("⚠️ A transcrição do vídeo foi cortada para respeitar o limite máximo de tokens.")
+                with st.spinner("ID do vídeo encontrado. Carregando a resposta..."):
+                    resumo = chain_analise_video.run(transcript=transcript_text, pergunta=pergunta_text)
                 st.subheader("Resposta:")
                 st.write(resumo)
