@@ -1,9 +1,17 @@
 import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
-from dotenv import load_dotenv
-from agent import chain_analise_video
+from agent import VideoAgent
 from tools import cortar_transcricao, extrair_url_youtube, extrair_video_id
+import os
+import logging
 
+LOGGER = logging.getLogger(__name__)
+
+API_KEY = os.getenv("OPENAI_API_KEY")
+if not API_KEY:
+    raise ValueError("OPENAI_API_KEY environment variable is not set.")
+
+video_agent = VideoAgent(API_KEY)
 
 st.title("Mimiryx - Analisador de Vídeos do YouTube !")
 st.info(f"Quer saber algo sobre um vídeo mas está sem poder assisti-lo? Talvez deseja um resumo do que se trata o vídeo? Ou já viu um vídeo mas não lembra um algo que foi falado e deseja saber?")
@@ -36,6 +44,6 @@ if st.button("Analisar"):
                 if cortado:
                     st.warning("⚠️ A transcrição do vídeo foi cortada para respeitar o limite máximo de tokens.")
                 with st.spinner("ID do vídeo encontrado. Carregando a resposta..."):
-                    resumo = chain_analise_video.run(transcript=transcript_text, pergunta=pergunta_text)
+                    resumo = video_agent.responder_pergunta(transcript_text, pergunta_text)
                 st.subheader("Resposta:")
                 st.write(resumo)
